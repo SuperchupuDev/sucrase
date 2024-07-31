@@ -53,6 +53,7 @@
     "@types/mocha": "^9.1.1",
     "@types/mz": "^2.7.4",
     "@types/node": "^20.3.2",
+    "@types/picomatch": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.1",
     "chalk": "^4",
@@ -73,9 +74,10 @@
   "dependencies": {
     "@jridgewell/gen-mapping": "^0.3.2",
     "commander": "^4.0.0",
-    "glob": "^10.3.10",
+    "fdir": "^6.2.0",
     "lines-and-columns": "^1.1.6",
     "mz": "^2.7.0",
+    "picomatch": "^4.0.2",
     "pirates": "^4.0.1",
     "ts-interface-checker": "^0.1.9"
   },

@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 import commander from "commander";
-import {glob} from "glob";
+import {fdir as Fdir} from "fdir";
 import {exists, mkdir, readdir, readFile, stat, writeFile} from "mz/fs";
 import {dirname, join, relative} from "path";
+import picomatch from "picomatch";
 
 import {type Options, transform} from "./index";
 
@@ -212,30 +213,31 @@ async function runGlob(options: CLIOptions): Promise<Array<FileInfo>> {
     }
   }
   if (include) {
-    for (const pattern of include) {
-      const globFiles = await glob(join(absProject, pattern));
-      for (const file of globFiles) {
-        if (!file.endsWith(".ts") && !file.endsWith(".js")) {
-          continue;
-        }
-        if (file.endsWith(".d.ts")) {
-          continue;
-        }
+    const matcher = picomatch(
+      include.map((p: string) => join(absProject, p)),
+      {
+        ignore: ["**/*.!(js|ts)|(d.ts)"],
+      },
+    );
+    const globFiles = await new Fdir()
+      .withBasePath()
+      .filter((file) => matcher(file))
+      .crawl(process.cwd())
+      .withPromise();
+    for (const file of globFiles) {
+      const relativeFile = relative(absProject, file);
+      const outFile = join(options.outDirPath, relativeFile);
+      const outPath = outFile.replace(/\.\w+$/, `.${options.outExtension}`);
 
-        const relativeFile = relative(absProject, file);
-        const outFile = join(options.outDirPath, relativeFile);
-        const outPath = outFile.replace(/\.\w+$/, `.${options.outExtension}`);
-
-        const outDir = dirname(outPath);
-        if (!outDirs.includes(outDir)) {
-          outDirs.push(outDir);
-        }
-
-        foundFiles.push({
-          srcPath: file,
-          outPath,
-        });
+      const outDir = dirname(outPath);
+      if (!outDirs.includes(outDir)) {
+        outDirs.push(outDir);
       }
+
+      foundFiles.push({
+        srcPath: file,
+        outPath,
+      });
     }
   }
 
